@@ -1,0 +1,221 @@
+# ----------------- Import Section -----------------
+import pygame
+from pygame.locals import *
+
+
+
+# ----------------- Global Constants/Variables Section -----------------
+pygame.init()
+WIDTH = 700
+
+WINDOW = pygame.display.set_mode((WIDTH, WIDTH))
+pygame.display.set_caption("A* Visualization")
+
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+ORANGE = (255, 168, 0)
+YELLOW = (255, 255, 0)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+AQUA = (128, 255, 255)
+GREY = (128, 128, 128)
+PURPLE = (128, 0, 128)
+
+
+# ----------------- Classes & Function Section -----------------
+class Node():
+    def __init__(self, row, col, width, total_rows):
+        self.row = row
+        self.col = col
+        self.width = width
+        self.total_rows = total_rows
+        self.color = WHITE
+        self.neighbors = []
+        self.x = col * width
+        self.y = row * width
+
+    def draw(self, window):
+        pygame.draw.rect(window, self.color, (self.x, self.y, self.width, self.width))
+
+    # ----------------- Make Methods -----------------
+    def make_red(self):
+        self.color = RED
+        
+    def make_green(self):
+        self.color = GREEN
+
+    def make_blue(self):
+        self.color = BLUE
+
+    def make_start(self):
+        self.color = ORANGE
+
+    def make_yellow(self):
+        self.color = YELLOW
+
+    def make_obstacle(self):
+        self.color = BLACK
+
+    def reset(self):
+        self.color = WHITE
+
+    def make_end(self):
+        self.color = AQUA
+
+    def make_grey(self):
+        self.color = GREY
+
+    def make_purple(self):
+        self.color = PURPLE
+
+    # ----------------- Check Methods -----------------
+    def is_red(self):
+        return self.color == RED
+        
+    def is_green(self):
+        return self.color == GREEN
+
+    def is_blue(self):
+        return self.color == BLUE
+
+    def is_start(self):
+        return self.color == ORANGE
+
+    def is_yellow(self):
+        return self.color == YELLOW
+
+    def is_obstacle(self):
+        return self.color == BLACK
+
+    def is_white(self):
+        return self.color == WHITE
+
+    def is_end(self):
+        return self.color == AQUA
+
+    def is_grey(self):
+        return self.color == GREY
+
+    def is_purple(self):
+        return self.color == PURPLE
+
+    def generate_neighbors(self, grid):
+        # look up, down, right & left make neighbor if not obstacle
+        # look up:
+        if self.row > 0:
+            node = grid[self.row - 1][self.col]
+            if not node.is_obstacle():
+                self.neighbors.append(node)
+
+        # look down:
+        if self.row < self.total_rows - 1:
+            node = grid[self.row + 1][self.col]
+            if not node.is_obstacle():
+                self.neighbors.append(node)
+
+        # look left:
+        if self.col > 0:
+            node = grid[self.row][self.col - 1]
+            if not node.is_obstacle():
+                self.neighbors.append(node)
+
+        # look right:
+        if self.col > self.total_rows - 1:
+            node = grid[self.row][self.col + 1]
+            if not node.is_obstacle():
+                self.neighbors.append(node)
+
+def make_grid(rows, width):
+    node_width = width // rows
+    grid = []
+    for i in range(rows):
+        temp = []
+        for j in range(rows):
+            node = Node(i, j, node_width, rows)
+            temp.append(node)
+        grid.append(temp)
+    return grid
+
+def draw_grid(window, grid, width, rows):
+    gap = width // rows
+    for i in range(rows):
+        pygame.draw.line(window, GREY, (gap * i, 0), (gap * i, width))
+        for j in range(rows):
+            pygame.draw.line(window, GREY, (0, gap*j), (width, gap*j))
+
+def draw(window, grid, rows, width):
+    window.fill(WHITE)
+    for row in grid:
+        for node in row:
+            node.draw(window)
+    draw_grid(window, grid, width, rows)
+    pygame.display.update()
+
+def get_clicked_node(x, y, rows, width):
+    node_width = width // rows
+    row = y // node_width
+    col = x // node_width
+    return row, col
+
+
+def algorithm():
+    print("Algo started...")
+
+def main(width, window):
+    ROWS = 7
+    grid = make_grid(ROWS, width)
+
+    start = None
+    end = None
+
+    running = True
+    started = False
+
+    while running:
+        draw(window, grid, ROWS, width)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit()
+                break
+
+            if pygame.mouse.get_pressed()[0]:
+                x, y = pygame.mouse.get_pos()
+                row, col = get_clicked_node(x, y, ROWS, width)
+                node = grid[row][col]
+
+                if not start and node != end:
+                    node.make_start()
+                    start = node
+
+                elif node != start and not end:
+                    node.make_end()
+                    end = node
+
+                elif node != start and node != end:
+                    node.make_obstacle()
+
+            if pygame.mouse.get_pressed()[2]:
+                x, y = pygame.mouse.get_pos()
+                row, col = get_clicked_node(x, y, ROWS, width)
+                node = grid[row][col]
+                node.reset()
+                if node == start:
+                    start = None
+                if node == end:
+                    end = None
+
+            if event.type == KEYDOWN:
+                if event.key == K_SPACE and not started:
+                    # generate neighbors
+                    for row in grid:
+                        for node in row:
+                            node.generate_neighbors(grid)
+
+                    algorithm()
+
+    pygame.quit()
+
+
+main(WIDTH, WINDOW)
