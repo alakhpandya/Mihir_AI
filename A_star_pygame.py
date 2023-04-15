@@ -1,7 +1,7 @@
 # ----------------- Import Section -----------------
 import pygame
 from pygame.locals import *
-
+from queue import PriorityQueue
 
 
 # ----------------- Global Constants/Variables Section -----------------
@@ -34,10 +34,15 @@ class Node():
         self.neighbors = []
         self.x = col * width
         self.y = row * width
+        # self.f = float("inf")
+        # self.g = float("inf")
 
     def draw(self, window):
         pygame.draw.rect(window, self.color, (self.x, self.y, self.width, self.width))
 
+    def get_position(self):
+        return self.row, self.col
+    
     # ----------------- Make Methods -----------------
     def make_red(self):
         self.color = RED
@@ -159,8 +164,21 @@ def get_clicked_node(x, y, rows, width):
     return row, col
 
 
-def algorithm():
-    print("Algo started...")
+def h(current_node, goal_node):
+    x, y = goal_node.get_position()
+    x1, y1 = current_node.get_position()
+    return abs(x - x1) + abs(y - y1)
+
+def algorithm(window, grid, width, rows, start, end):
+    open = PriorityQueue()
+    order = 1
+    h_start = h(start, end)
+    open.put(h_start, h_start, order, start)
+    f_values = {}
+    for row in grid:
+        for node in row:
+            f_values[node] = float("inf")
+
 
 def main(width, window):
     ROWS = 7
