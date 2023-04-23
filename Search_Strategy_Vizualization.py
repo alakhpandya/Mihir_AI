@@ -1,3 +1,7 @@
+from AI_search_strategies import A_star as algorithm
+from AI_search_strategies import dfs as algorithm
+from AI_search_strategies import bfs as algorithm
+
 # ----------------- Import Section -----------------
 import pygame
 from pygame.locals import *
@@ -7,6 +11,7 @@ from queue import PriorityQueue
 # ----------------- Global Constants/Variables Section -----------------
 pygame.init()
 WIDTH = 700
+ROWS = int(input("Rows: "))
 
 WINDOW = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("A* Visualization")
@@ -71,7 +76,7 @@ class Node():
     def make_grey(self):
         self.color = GREY
 
-    def make_purple(self):
+    def make_path(self):
         self.color = PURPLE
 
     # ----------------- Check Methods -----------------
@@ -102,7 +107,7 @@ class Node():
     def is_grey(self):
         return self.color == GREY
 
-    def is_purple(self):
+    def is_path(self):
         return self.color == PURPLE
 
     def generate_neighbors(self, grid):
@@ -169,60 +174,66 @@ def h(current_node, goal_node):
     x1, y1 = current_node.get_position()
     return abs(x - x1) + abs(y - y1)
 
-def algorithm(window, grid, width, rows, start, end):
-    open = PriorityQueue()
-    order = 1
-    h_start = h(start, end)
-    open.put((h_start, h_start, order, start))
-    f_values = {}
-    g_values = {}
-    backtrack = {}
-    simplified_queue = {start}
-    for row in grid:
-        for node in row:
-            f_values[node] = float("inf")
-            g_values[node] = float("inf")
 
-    f_values[start] = h_start
-    g_values[start] = 0
-
-    while not open.empty():
-        # print("Algo called")
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-
-        node = open.get()[3]
-
-        
-        for current in node.neighbors:
-            # print("for started")
-            temp_g = g_values[node] + 1
-
-            if node == end:
-                # create_path()
-                start.make_start()
-                return True
-
-
-            if temp_g < g_values[current]:
-                g_values[current] = temp_g
-                h_value = h(current, end)
-                f_values[current] = g_values[current] + h_value
-                backtrack[current] = node
-
-                if current not in simplified_queue:
-                    order += 1
-                    open.put((f_values[current], h_value, order, current))
-                    simplified_queue.add(current)
-                    node.make_open()
-
+def create_path(backtrack, end, window, grid, rows, width):
+    node = end
+    while node in backtrack:
+        node = backtrack[node]
+        node.make_path()
         draw(window, grid, rows, width)
 
+# def algorithm(window, grid, width, rows, start, end):
+#     open = PriorityQueue()
+#     order = 1
+#     h_start = h(start, end)
+#     open.put((h_start, h_start, order, start))
+#     f_values = {}
+#     g_values = {}
+#     backtrack = {}
+#     simplified_queue = {start}
+#     for row in grid:
+#         for node in row:
+#             f_values[node] = float("inf")
+#             g_values[node] = float("inf")
 
-def main(width, window):
-    ROWS = 7
+#     f_values[start] = h_start
+#     g_values[start] = 0
+
+#     while not open.empty():
+
+#         for event in pygame.event.get():
+#             if event.type == pygame.QUIT:
+#                 pygame.quit()
+
+#         node = open.get()[3]
+
+        
+#         for current in node.neighbors:
+#             # print("for started")
+#             temp_g = g_values[node] + 1
+
+#             if node == end:
+#                 create_path(backtrack, end, window, grid, rows, width)
+#                 start.make_start()
+#                 return True
+
+
+#             if temp_g < g_values[current]:
+#                 g_values[current] = temp_g
+#                 h_value = h(current, end)
+#                 f_values[current] = g_values[current] + h_value
+#                 backtrack[current] = node
+
+#                 if current not in simplified_queue:
+#                     order += 1
+#                     open.put((f_values[current], h_value, order, current))
+#                     simplified_queue.add(current)
+#                     node.make_open()
+
+#         draw(window, grid, rows, width)
+
+
+def main(width, window, ROWS):
     grid = make_grid(ROWS, width)
 
     start = None
@@ -273,8 +284,18 @@ def main(width, window):
                             node.generate_neighbors(grid)
 
                     algorithm(window, grid, width, ROWS, start, end)
+                
+                if event.key == K_ESCAPE:
+                    grid = make_grid(ROWS, width)
+
+                    start = None
+                    end = None
+
+                    running = True
+                    started = False
+ 
 
     pygame.quit()
 
 
-main(WIDTH, WINDOW)
+main(WIDTH, WINDOW, ROWS)
